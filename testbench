@@ -1,0 +1,41 @@
+// Code your testbench here
+// or browse Examples
+module tb_risc;
+    reg clk;
+    reg reset;
+    wire [3:0] acc;
+
+    // Instantiate the Processor
+    risc_4bit uut (
+        .clk(clk),
+        .reset(reset),
+        .accumulator(acc)
+    );
+
+    // Clock Generation
+    always #5 clk = ~clk;
+
+    initial begin
+        // Initialize EDA Playground waves
+        $dumpfile("dump.vcd");
+        $dumpvars(0, tb_risc);
+
+        // Load the Program into Instruction Memory
+        // Format: {Opcode, Operand/Address}
+        uut.imem[0] = 8'b0001_0010; // LOAD [2] -> Acc = 4
+        uut.imem[1] = 8'b0011_0001; // ADD [1]  -> Acc = 4 + 2 = 6
+        uut.imem[2] = 8'b0100_0011; // SUB [3]  -> Acc = 6 - 1 = 5
+        uut.imem[3] = 8'b1111_0000; // HALT
+
+        // Simulation Sequence
+        clk = 0;
+        reset = 1;
+        #10 reset = 0;
+
+        // Run for enough cycles to finish
+        #100;
+        
+        $display("Final Accumulator Value: %d", acc);
+        $finish;
+    end
+endmodule
