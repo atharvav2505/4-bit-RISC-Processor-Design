@@ -1,0 +1,47 @@
+// Code your design here
+module risc_4bit(
+    input clk,
+    input reset,
+    output reg [3:0] accumulator // Internal register showing results
+);
+
+    // Instruction Memory (6 locations)
+    reg [7:0] imem [0:7];
+    
+    // Internal Registers
+    reg [3:0] pc;        // Program Counter
+    reg [7:0] ir;        // Instruction Register
+    reg [3:0] dmem [0:15]; // Data Memory
+    
+    // Opcodes
+    parameter LOAD = 4'b0001; // Load Accumulator from Address
+    parameter STORE= 4'b0010; // Store Accumulator to Address
+    parameter ADD  = 4'b0011; // Add Address Value to Acc
+    parameter SUB  = 4'b0100; // Subtract Address Value from Acc
+    parameter HALT = 4'b1111;
+
+    // Processor Logic
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            pc <= 0;
+            accumulator <= 0;
+            // Initialize Data Memory with some values
+            dmem[1] <= 4'b0010; // Value 2 at Address 1
+            dmem[2] <= 4'b0100; // Value 4 at Address 2
+            dmem[3] <= 4'b0001; // Value 1 at Address 3
+        end else begin
+            ir <= imem[pc];
+            
+            case (ir[7:4]) // Decode Opcode
+                LOAD:  accumulator <= dmem[ir[3:0]];
+                STORE: dmem[ir[3:0]] <= accumulator;
+                ADD:   accumulator <= accumulator + dmem[ir[3:0]];
+                SUB:   accumulator <= accumulator - dmem[ir[3:0]];
+                HALT:  pc <= pc; // Stop incrementing
+                default: pc <= pc + 1;
+            endcase
+            
+            if (ir[7:4] != HALT) pc <= pc + 1;
+        end
+    end
+endmodule
